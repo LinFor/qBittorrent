@@ -34,10 +34,20 @@ namespace BitTorrent
 {
     struct CacheStatus
     {
-        quint64 totalUsedBuffers = 0;
-        quint64 jobQueueLength = 0;
+        quint64 diskRequestLatency = 0; // disk.request_latency
+        quint64 totalUsedBuffers = 0; // disk.disk_blocks_in_use
+        quint64 jobQueueLength = 0; // disk.queued_disk_jobs
+        quint64 queuedBytes = 0; // disk.queued_write_bytes
+        quint64 diskNumBlocksWritten = 0; // disk.num_blocks_written
+        quint64 diskNumBlocksRead = 0; // disk.num_blocks_read
         quint64 averageJobTime = 0;
-        quint64 queuedBytes = 0;
         qreal readRatio = 0;  // TODO: remove when LIBTORRENT_VERSION_NUM >= 20000
+        quint64 readJobs = 0; // disk.num_read_ops
+        quint64 writeJobs = 0; // disk.num_write_ops
+        quint64 hashJobs = 0; // disk.num_blocks_hashed
+        quint64 diskReadTime = 0; // disk.disk_read_time
+        quint64 diskWriteTime = 0; // disk.disk_write_time
+        quint64 diskHashTime = 0; // disk.disk_hash_time
+        quint64 diskJobTime = 0; // disk.disk_job_time
     };
 }

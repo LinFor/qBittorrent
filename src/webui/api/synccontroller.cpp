@@ -94,6 +94,7 @@ namespace
     const char KEY_TRANSFER_ALLTIME_UL[] = "alltime_ul";
     const char KEY_TRANSFER_AVERAGE_TIME_QUEUE[] = "average_time_queue";
     const char KEY_TRANSFER_GLOBAL_RATIO[] = "global_ratio";
+    const char KEY_TRANSFER_DISK_REQUEST_LATENCY[] = "disk_request_latency";
     const char KEY_TRANSFER_QUEUED_IO_JOBS[] = "queued_io_jobs";
     const char KEY_TRANSFER_READ_CACHE_HITS[] = "read_cache_hits";
     const char KEY_TRANSFER_READ_CACHE_OVERLOAD[] = "read_cache_overload";
@@ -102,6 +103,15 @@ namespace
     const char KEY_TRANSFER_TOTAL_QUEUED_SIZE[] = "total_queued_size";
     const char KEY_TRANSFER_TOTAL_WASTE_SESSION[] = "total_wasted_session";
     const char KEY_TRANSFER_WRITE_CACHE_OVERLOAD[] = "write_cache_overload";
+    const char KEY_TRANSFER_DISK_TOTAL_BYTES_READ[] = "disk_total_bytes_read";
+    const char KEY_TRANSFER_DISK_TOTAL_BYTES_WRITTEN[] = "disk_total_bytes_written";
+    const char KEY_TRANSFER_DISK_TOTAL_BYTES_HASHED[] = "disk_total_bytes_hashed";
+    const char KEY_TRANSFER_DISK_NUM_READ_OPS[] = "disk_num_read_ops";
+    const char KEY_TRANSFER_DISK_NUM_WRITE_OPS[] = "disk_num_write_ops";
+    const char KEY_TRANSFER_DISK_DISK_READ_TIME[] = "disk_disk_read_time";
+    const char KEY_TRANSFER_DISK_DISK_WRITE_TIME[] = "disk_disk_write_time";
+    const char KEY_TRANSFER_DISK_DISK_HASH_TIME[] = "disk_disk_hash_time";
+    const char KEY_TRANSFER_DISK_DISK_JOB_TIME[] = "disk_disk_job_time";
 
     const char KEY_FULL_UPDATE[] = "full_update";
     const char KEY_RESPONSE_ID[] = "rid";
@@ -136,7 +146,7 @@ namespace
 
         const qreal readRatio = cacheStatus.readRatio;  // TODO: remove when LIBTORRENT_VERSION_NUM >= 20000
         map[KEY_TRANSFER_READ_CACHE_HITS] = (readRatio > 0) ? Utils::String::fromDouble(100 * readRatio, 2) : "0";
-        map[KEY_TRANSFER_TOTAL_BUFFERS_SIZE] = cacheStatus.totalUsedBuffers * 16 * 1024;
+        map[KEY_TRANSFER_TOTAL_BUFFERS_SIZE] = cacheStatus.totalUsedBuffers * 16 * 1024; // disk.disk_blocks_in_use
 
         map[KEY_TRANSFER_WRITE_CACHE_OVERLOAD] = ((sessionStatus.diskWriteQueue > 0) && (sessionStatus.peersCount > 0))
             ? Utils::String::fromDouble((100. * sessionStatus.diskWriteQueue / sessionStatus.peersCount), 2)
@@ -145,9 +155,19 @@ namespace
             ? Utils::String::fromDouble((100. * sessionStatus.diskReadQueue / sessionStatus.peersCount), 2)
             : QLatin1String("0");
 
-        map[KEY_TRANSFER_QUEUED_IO_JOBS] = cacheStatus.jobQueueLength;
+        map[KEY_TRANSFER_DISK_REQUEST_LATENCY] = cacheStatus.diskRequestLatency; // disk.request_latency
+        map[KEY_TRANSFER_QUEUED_IO_JOBS] = cacheStatus.jobQueueLength; // disk.queued_disk_jobs
         map[KEY_TRANSFER_AVERAGE_TIME_QUEUE] = cacheStatus.averageJobTime;
-        map[KEY_TRANSFER_TOTAL_QUEUED_SIZE] = cacheStatus.queuedBytes;
+        map[KEY_TRANSFER_TOTAL_QUEUED_SIZE] = cacheStatus.queuedBytes; // disk.queued_write_bytes
+        map[KEY_TRANSFER_DISK_TOTAL_BYTES_READ] = cacheStatus.diskNumBlocksRead * 16 * 1024; // disk.num_blocks_read
+        map[KEY_TRANSFER_DISK_TOTAL_BYTES_WRITTEN] = cacheStatus.diskNumBlocksWritten * 16 * 1024; // disk.num_blocks_written
+        map[KEY_TRANSFER_DISK_TOTAL_BYTES_HASHED] = cacheStatus.hashJobs * 16 * 1024; // disk.num_blocks_hashed
+        map[KEY_TRANSFER_DISK_NUM_READ_OPS] = cacheStatus.readJobs; // disk.num_read_ops
+        map[KEY_TRANSFER_DISK_NUM_WRITE_OPS] = cacheStatus.writeJobs; // disk.num_write_ops
+        map[KEY_TRANSFER_DISK_DISK_READ_TIME] = cacheStatus.diskReadTime; // disk.disk_read_time
+        map[KEY_TRANSFER_DISK_DISK_WRITE_TIME] = cacheStatus.diskWriteTime; // disk.disk_write_time
+        map[KEY_TRANSFER_DISK_DISK_HASH_TIME] = cacheStatus.diskHashTime; // disk.disk_hash_time
+        map[KEY_TRANSFER_DISK_DISK_JOB_TIME] = cacheStatus.diskJobTime; // disk.disk_job_time
 
         map[KEY_TRANSFER_DHT_NODES] = sessionStatus.dhtNodes;
         map[KEY_TRANSFER_CONNECTION_STATUS] = session->isListening()

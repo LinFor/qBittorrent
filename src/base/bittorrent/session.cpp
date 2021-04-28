@@ -1198,7 +1198,10 @@ void Session::initMetrics()
     m_metricIndices.dht.dhtBytesOut = findMetricIndex("dht.dht_bytes_out");
     m_metricIndices.dht.dhtNodes = findMetricIndex("dht.dht_nodes");
 
+    m_metricIndices.disk.requestLatency = findMetricIndex("disk.request_latency");
     m_metricIndices.disk.diskBlocksInUse = findMetricIndex("disk.disk_blocks_in_use");
+    m_metricIndices.disk.queuedWriteBytes = findMetricIndex("disk.queued_write_bytes");
+    m_metricIndices.disk.numBlocksWritten = findMetricIndex("disk.num_blocks_written");
     m_metricIndices.disk.numBlocksRead = findMetricIndex("disk.num_blocks_read");
 #if (LIBTORRENT_VERSION_NUM < 20000)
     m_metricIndices.disk.numBlocksCacheHits = findMetricIndex("disk.num_blocks_cache_hits");
@@ -1207,6 +1210,9 @@ void Session::initMetrics()
     m_metricIndices.disk.readJobs = findMetricIndex("disk.num_read_ops");
     m_metricIndices.disk.hashJobs = findMetricIndex("disk.num_blocks_hashed");
     m_metricIndices.disk.queuedDiskJobs = findMetricIndex("disk.queued_disk_jobs");
+    m_metricIndices.disk.diskReadTime = findMetricIndex("disk.disk_read_time");
+    m_metricIndices.disk.diskWriteTime = findMetricIndex("disk.disk_write_time");
+    m_metricIndices.disk.diskHashTime = findMetricIndex("disk.disk_hash_time");
     m_metricIndices.disk.diskJobTime = findMetricIndex("disk.disk_job_time");
 }
 
@@ -4901,19 +4907,28 @@ void Session::handleSessionStatsAlert(const lt::session_stats_alert *p)
     m_status.diskWriteQueue = stats[m_metricIndices.peer.numPeersDownDisk];
     m_status.peersCount = stats[m_metricIndices.peer.numPeersConnected];
 
-    const int64_t numBlocksRead = stats[m_metricIndices.disk.numBlocksRead];
+    m_cacheStatus.diskRequestLatency = stats[m_metricIndices.disk.requestLatency];
     m_cacheStatus.totalUsedBuffers = stats[m_metricIndices.disk.diskBlocksInUse];
     m_cacheStatus.jobQueueLength = stats[m_metricIndices.disk.queuedDiskJobs];
-
+    m_cacheStatus.queuedBytes = stats[m_metricIndices.disk.queuedWriteBytes];
+    m_cacheStatus.diskNumBlocksWritten = stats[m_metricIndices.disk.numBlocksWritten];
+    m_cacheStatus.diskNumBlocksRead = stats[m_metricIndices.disk.numBlocksRead];
 #if (LIBTORRENT_VERSION_NUM < 20000)
     const int64_t numBlocksCacheHits = stats[m_metricIndices.disk.numBlocksCacheHits];
-    m_cacheStatus.readRatio = static_cast<qreal>(numBlocksCacheHits) / std::max<int64_t>((numBlocksCacheHits + numBlocksRead), 1);
+    m_cacheStatus.readRatio = static_cast<qreal>(numBlocksCacheHits) / std::max<int64_t>((numBlocksCacheHits + m_cacheStatus.diskNumBlocksRead), 1);
 #endif
 
     const int64_t totalJobs = stats[m_metricIndices.disk.writeJobs] + stats[m_metricIndices.disk.readJobs]
                   + stats[m_metricIndices.disk.hashJobs];
     m_cacheStatus.averageJobTime = (totalJobs > 0)
                                    ? (stats[m_metricIndices.disk.diskJobTime] / totalJobs) : 0;
+    m_cacheStatus.readJobs = stats[m_metricIndices.disk.readJobs];
+    m_cacheStatus.writeJobs = stats[m_metricIndices.disk.writeJobs];
+    m_cacheStatus.hashJobs = stats[m_metricIndices.disk.hashJobs];
+    m_cacheStatus.diskReadTime = stats[m_metricIndices.disk.diskReadTime];
+    m_cacheStatus.diskWriteTime = stats[m_metricIndices.disk.diskWriteTime];
+    m_cacheStatus.diskHashTime = stats[m_metricIndices.disk.diskHashTime];
+    m_cacheStatus.diskJobTime = stats[m_metricIndices.disk.diskJobTime];
 
     emit statsUpdated();
 

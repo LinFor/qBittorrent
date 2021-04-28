@@ -187,7 +187,10 @@ namespace BitTorrent
 
         struct
         {
+            int requestLatency = -1;
             int diskBlocksInUse = -1;
+            int queuedWriteBytes = -1;
+            int numBlocksWritten = -1;
             int numBlocksRead = -1;
 #if (LIBTORRENT_VERSION_NUM < 20000)
             int numBlocksCacheHits = -1;
@@ -196,6 +199,9 @@ namespace BitTorrent
             int readJobs = -1;
             int hashJobs = -1;
             int queuedDiskJobs = -1;
+            int diskReadTime = -1;
+            int diskWriteTime = -1;
+            int diskHashTime = -1;
             int diskJobTime = -1;
         } disk;
     };
